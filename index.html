@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Admin Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .auth-section {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .auth-section h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.3);
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .user-info {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(145deg, #e8f5e8, #f0f8f0);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .user-info p {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .user-email {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-input-display {
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            text-align: center;
+            background: #f8f9ff;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-display:hover {
+            background: #f0f4ff;
+            border-color: #5a67d8;
+        }
+
+        .file-input-display i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: linear-gradient(145deg, #d4edda, #c3e6cb);
+            color: #155724;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+
+        .error-message {
+            background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+            display: none;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .product-section {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-row .form-group {
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Enhanced animations */
+        .card {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-pills"></i> PharmacOnline Admin</h1>
+            <p>Professional Pharmacy Management System</p>
+        </div>
+
+        <div id="authSection" class="card auth-section">
+            <div id="loginForm">
+                <h3><i class="fas fa-user-shield"></i> Admin Login</h3>
+                
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your admin email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                
+                <button class="btn btn-primary" onclick="signIn()">
+                    <span id="loginText">Sign In</span>
+                    <span id="loginLoading" class="hidden"><span class="loading"></span>Signing In...</span>
+                </button>
+            </div>
+            
+            <div id="userInfo" class="user-info hidden">
+                <p>Welcome back, <span id="userEmail" class="user-email"></span></p>
+                <button class="btn btn-secondary" onclick="signOut()">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            <i class="fas fa-check-circle"></i> <span id="successText"></span>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-triangle"></i> <span id="errorText"></span>
+        </div>
+
+        <div id="productSection" class="card product-section hidden">
+            <h3 class="section-title"><i class="fas fa-plus-circle"></i> Add New Product</h3>
+            
+            <form id="productForm">
+                <input type="hidden" id="docId" />
+
+                <div class="form-group">
+                    <label for="productName"><i class="fas fa-capsules"></i> Product Name</label>
+                    <input type="text" id="productName" placeholder="Enter product name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="brandName"><i class="fas fa-trademark"></i> Brand Name</label>
+                    <input type="text" id="brandName" placeholder="Enter brand name" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <input type="text" id="category" placeholder="e.g., Antibiotics" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subCategory">Sub-Category</label>
+                        <input type="text" id="subCategory" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="description" placeholder="Enter detailed product description" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dosageForm">Dosage Form</label>
+                        <input type="text" id="dosageForm" placeholder="e.g., Tablet, Syrup">
+                    </div>
+                    <div class="form-group">
+                        <label for="dosageStrength">Dosage Strength</label>
+                        <input type="text" id="dosageStrength" placeholder="e.g., 500mg">
+                    </div>
+                </div>
+
+                <div class="file-input-wrapper">
+                    <label for="imageFile"><i class="fas fa-image"></i> Product Image</label>
+                    <div class="file-input-display" onclick="document.getElementById('imageFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span id="fileText">Tap to upload product image</span>
+                    </div>
+                    <input type="file" id="imageFile" accept="image/*" required style="display: none;">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="prescriptionRequired">
+                    <label for="prescriptionRequired">Prescription Required</label>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price"><i class="fas fa-dollar-sign"></i> Price</label>
+                        <input type="number" id="price" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock"><i class="fas fa-boxes"></i> Stock Quantity</label>
+                        <input type="text" id="stock" placeholder="Available quantity" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags"><i class="fas fa-tags"></i> Tags</label>
+                    <input type="text" id="tags" placeholder="pain relief, fever, headache (comma-separated)">
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span id="submitText"><i class="fas fa-save"></i> Save Product</span>
+                    <span id="submitLoading" class="hidden"><span class="loading"></span>Saving...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNMdcbXVMC_QUgVSmgFMXlW84DWQs9QZE",
+            authDomain: "pharmac-online.firebaseapp.com",
+            projectId: "pharmac-online",
+            storageBucket: "pharmac-online.appspot.com",
+            messagingSenderId: "968868548902",
+            appId: "1:968868548902:web:0607bd63857c7c538131e7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Enhanced UI functions
+        function showMessage(message, type = 'success') {
+            const successEl = document.getElementById('successMessage');
+            const errorEl = document.getElementById('errorMessage');
+            
+            if (type === 'success') {
+                document.getElementById('successText').textContent = message;
+                successEl.style.display = 'block';
+                errorEl.style.display = 'none';
+                setTimeout(() => successEl.style.display = 'none', 5000);
+            } else {
+                document.getElementById('errorText').textContent = message;
+                errorEl.style.display = 'block';
+                successEl.style.display = 'none';
+                setTimeout(() => errorEl.style.display = 'none', 5000);
+            }
+        }
+
+        function setLoading(elementId, isLoading) {
+            const textEl = document.getElementById(elementId);
+            const loadingEl = document.getElementById(elementId.replace('Text', 'Loading'));
+            const button = textEl.closest('button');
+            
+            if (isLoading) {
+                textEl.classList.add('hidden');
+                loadingEl.classList.remove('hidden');
+                button.disabled = true;
+            } else {
+                textEl.classList.remove('hidden');
+                loadingEl.classList.add('hidden');
+                button.disabled = false;
+            }
+        }
+
+        // File input handling
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const fileText = document.getElementById('fileText');
+            if (e.target.files.length > 0) {
+                fileText.textContent = e.target.files[0].name;
+            } else {
+                fileText.textContent = 'Tap to upload product image';
+            }
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                document.getElementById('userEmail').textContent = user.email;
+                try {
+                    const adminDoc = await db.collection('Admin').doc(user.uid).get();
+                    if (adminDoc.exists) {
+                        showAdminInterface();
+                    } else {
+                        showMessage("Access denied: You are not an admin.", 'error');
+                        signOut();
+                    }
+                } catch (error) {
+                    showMessage("Error verifying admin status: " + error.message, 'error');
+                }
+            } else {
+                showLoginInterface();
+            }
+        });
+
+        async function signIn() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showMessage('Please enter both email and password', 'error');
+                return;
+            }
+
+            setLoading('loginText', true);
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                showMessage('Successfully signed in!');
+            } catch (error) {
+                showMessage('Sign in failed: ' + error.message, 'error');
+            } finally {
+                setLoading('loginText', false);
+            }
+        }
+
+        function signOut() { 
+            auth.signOut();
+            showMessage('Successfully signed out!');
+        }
+
+        function showLoginInterface() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('productSection').classList.add('hidden');
+        }
+
+        function showAdminInterface() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('productSection').classList.remove('hidden');
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                showMessage("Please select an image file", 'error');
+                return;
+            }
+
+            const productName = document.getElementById('productName').value.trim();
+            if (!productName) {
+                showMessage("Product name is required", 'error');
+                return;
+            }
+
+            setLoading('submitText', true);
+
+            try {
+                // Upload file to Baserow
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const uploadResponse = await fetch("https://api.baserow.io/api/user-files/upload-file/", {
+                    method: "POST",
+                    headers: {
+                        Authorization: "Token 1GP5AyyvuuRS9F5zS66WIFD5IUrEf1ue"
+                    },
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) throw new Error("File upload failed");
+                const uploadData = await uploadResponse.json();
+                const fileUrl = uploadData.url;
+                const fileName = uploadData.name;
+
+                // Create row in Baserow table
+                const rowResponse = await fetch("https://api.baserow.io/api/database/rows/table/581943/?user_field_names=true", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Token 1GP5AyyvuuRS9F5zS66WIFD5IUrEf1ue"
+                    },
+                    body: JSON.stringify({
+                        "Product Name": productName,
+                        "Image": [fileName]
+                    })
+                });
+
+                if (!rowResponse.ok) throw new Error("Row creation failed");
+
+                // Create Firestore document
+                const data = {
+                    productName,
+                    brandName: document.getElementById('brandName').value.trim(),
+                    category: document.getElementById('category').value.trim(),
+                    subCategory: document.getElementById('subCategory').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    dosageForm: document.getElementById('dosageForm').value.trim(),
+                    dosageStrength: document.getElementById('dosageStrength').value.trim(),
+                    imageUrl: fileUrl,
+                    prescriptionRequired: document.getElementById('prescriptionRequired').checked,
+                    price: parseFloat(document.getElementById('price').value),
+                    stock: document.getElementById('stock').value.trim(),
+                    tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t !== ""),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: auth.currentUser.uid
+                };
+
+                await db.collection('Products').add(data);
+                showMessage(`Product "${productName}" created successfully!`);
+                document.getElementById('productForm').reset();
+                document.getElementById('fileText').textContent = 'Tap to upload product image';
+            } catch (err) {
+                console.error("Error:", err);
+                showMessage("Error: " + err.message, 'error');
+            } finally {
+                setLoading('submitText', false);
+            }
+        });
+
+        // Enter key support for login
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                signIn();
+            }
+        });
+    </script>
+</body>
+</html>
