@@ -49,6 +49,47 @@
             font-size: 0.9rem;
         }
 
+        .navigation-bar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-button {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+            background: linear-gradient(45deg, #218838, #1e7e34);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+        }
+
         .card {
             background: white;
             border-radius: 20px;
@@ -306,6 +347,15 @@
             .form-row .form-group {
                 margin-bottom: 20px;
             }
+
+            .navigation-bar {
+                padding: 12px;
+            }
+
+            .nav-button {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
         }
 
         /* Enhanced animations */
@@ -343,6 +393,21 @@
         .btn:hover::before {
             left: 100%;
         }
+
+        .navigation-bar {
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -350,6 +415,13 @@
         <div class="header">
             <h1><i class="fas fa-pills"></i> PharmaCare Admin</h1>
             <p>Professional Pharmacy Management System</p>
+        </div>
+
+        <!-- Navigation Bar - Shows after login -->
+        <div id="navigationBar" class="navigation-bar hidden">
+            <button class="nav-button" onclick="openImageUpload()">
+                <i class="fas fa-upload"></i> Image Upload
+            </button>
         </div>
 
         <div id="authSection" class="card auth-section">
@@ -487,6 +559,11 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Navigation function
+        function openImageUpload() {
+            window.open('image_upload.html', '_blank');
+        }
+
         // Enhanced UI functions
         function showMessage(message, type = 'success') {
             const successEl = document.getElementById('successMessage');
@@ -581,12 +658,14 @@
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('userInfo').classList.add('hidden');
             document.getElementById('productSection').classList.add('hidden');
+            document.getElementById('navigationBar').classList.add('hidden');
         }
 
         function showAdminInterface() {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('userInfo').classList.remove('hidden');
             document.getElementById('productSection').classList.remove('hidden');
+            document.getElementById('navigationBar').classList.remove('hidden');
         }
 
         document.getElementById('productForm').addEventListener('submit', async (e) => {
